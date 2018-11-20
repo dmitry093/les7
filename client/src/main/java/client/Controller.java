@@ -31,6 +31,7 @@ public class Controller {
     PasswordField passwordField;
 
     private boolean isAuthorized;
+    private String nickName;
 
     Socket socket;
     DataOutputStream out;
@@ -68,6 +69,12 @@ public class Controller {
                             String str = in.readUTF();
                             if (str.startsWith("/authok")) {
                                 setAuthorized(true);
+                                if (!str.contains("nick:")) {
+                                    nickName = "noname";
+                                }
+                                else{
+                                    nickName = str.substring(str.indexOf("nick:") + 5);
+                                }
                                 break;
                             } else {
                                 chatArea.appendText(str + "\n");
@@ -100,7 +107,7 @@ public class Controller {
 
     public void sendMsg() {
         try {
-            out.writeUTF(msgField.getText());
+            out.writeUTF(nickName + ": " + (msgField.getText()));
             msgField.clear();
             msgField.requestFocus();
         } catch (IOException e) {
