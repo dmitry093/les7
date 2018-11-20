@@ -5,13 +5,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
-    private Vector<ClientHandler> clients;
+    private ConcurrentHashMap<String, ClientHandler> clients;
 
     public Server() {
         AuthService.connect();
-        clients = new Vector<>();
+        clients = new ConcurrentHashMap<>();
         ServerSocket server = null;
         Socket socket = null;
 
@@ -44,13 +45,22 @@ public class Server {
     }
 
     public void broadcastMsg(String msg) {
-        for (ClientHandler o : clients) {
+        for (ClientHandler o : clients.values()) {
             o.sendMsg(msg);
         }
     }
 
-    public void subscribe(ClientHandler clientHandler) {
-        clients.add(clientHandler);
+    public void privateMessage(String destination, String message, ClientHandler from){
+        if (clients.containsKey(destination)){
+            clients.get(destination).sendMsg(from.nick + "[private]: " + message);
+        }
+        else{
+            from.sendMsg("Не найден собеседник с ником " + destination);
+        }
+    }
+
+    public void subscribe(String nickName, ClientHandler clientHandler) {
+        clients.put(nickName, clientHandler);
     }
 
     public void unsubscribe(ClientHandler clientHandler) {
